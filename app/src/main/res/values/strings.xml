@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Mano</string>
+    <string name="title">Title</string>
+    <string name="body">Body</string>
+    <string name="delete">Delete</string>
+    <string name="save">Save</string>
+    <string name="deletePrompt">Delete this entry?</string>
+    <string name="cancel">Cancel</string>
+    <string name="exit">Exit</string>
+    <string name="date">Date</string>
+    <string name="time">Time</string>
+</resources>
