@@ -88,7 +88,13 @@ class EntryActivity : AppCompatActivity() {
 
     //TODO: update reminder when already exists
     componentUIManager.components.forEachIndexed{ index, component ->
-      dbHelper.insertReminder(entryId, index.toLong(), (component as Reminder).dateTime) }
+      if (component.id > 0) {
+        dbHelper.updateReminder(component.id, (component as Reminder).dateTime)
+      }
+      else {
+        dbHelper.insertReminder(entryId, index.toLong(), (component as Reminder).dateTime)
+      }
+    }
 
     enableDelete()
   }

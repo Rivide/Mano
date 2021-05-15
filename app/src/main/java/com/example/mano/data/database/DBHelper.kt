@@ -132,11 +132,16 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context,
   fun insertReminder(entryId: Long, position: Long, dateTime: Long): Long {
     val values = ContentValues()
     values.put("id", insertComponent(entryId, position, "reminder"))
-    //values.put("entryId", entryId)
-    //values.put("position", position)
     values.put("dateTime", dateTime)
 
     return writableDatabase.insert("reminder", null, values)
+  }
+
+  fun updateReminder(id: Long, dateTime: Long) {
+    val values = ContentValues()
+    values.put("dateTime", dateTime)
+
+    writableDatabase.update("reminder", values, "id=?", arrayOf(id.toString()))
   }
 
   fun selectRemindersByEntry(entryId: Long): ArrayList<Reminder> {
