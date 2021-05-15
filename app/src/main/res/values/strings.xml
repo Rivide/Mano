@@ -9,4 +9,5 @@
     <string name="exit">Exit</string>
     <string name="date">Date</string>
     <string name="time">Time</string>
+    <string name="addComponent">Add Component</string>
 </resources>

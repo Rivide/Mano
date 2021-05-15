@@ -6,10 +6,14 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.mano.R
+import com.example.mano.data.adapters.ComponentAdapter
 import com.example.mano.data.database.DBHelper
 import com.example.mano.fragments.DateTimePicker
 import com.example.mano.fragments.DeleteFragment
@@ -25,6 +29,8 @@ class EntryActivity : AppCompatActivity() {
   lateinit var dateTimePicker: DateTimePicker
   var deleteFragment: DeleteFragment? = null
   val v = ViewWrapper.getWrapper()
+
+  lateinit var recycler: RecyclerView
 
   @RequiresApi(Build.VERSION_CODES.O)
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,7 +54,10 @@ class EntryActivity : AppCompatActivity() {
         LocalDateTime.ofEpochSecond(intent.getLongExtra("dateTime", -1),
           0, OffsetDateTime.now().offset)
       )
+
       enableDelete()
+
+      fillRecycler()
     } else {
       dateTimePicker = DateTimePicker(
         supportFragmentManager,
@@ -57,6 +66,7 @@ class EntryActivity : AppCompatActivity() {
       )
     }
   }
+
   @RequiresApi(Build.VERSION_CODES.O)
   fun onSaveButtonClick(view: View) {
     val title = v(R.id.title).text
@@ -68,6 +78,8 @@ class EntryActivity : AppCompatActivity() {
     } else {
       id = dbHelper.insertEntry(title, body, dateTime)
     }
+
+    dbHelper.insertReminder(id, 0, dateTime)
 
     enableDelete()
   }
@@ -87,6 +99,25 @@ class EntryActivity : AppCompatActivity() {
 
         v(R.id.deleteButton).view.visibility = View.GONE
       }
+    }
+  }
+  fun onAddComponentButtonClick(view: View) {
+
+  }
+  private fun fillRecycler() {
+    val linearManager = LinearLayoutManager(this)
+
+    val componentAdapter = ComponentAdapter(dbHelper.selectComponentsByEntry(id)
+      .sortedBy { it.position }.toTypedArray())
+
+    recycler = findViewById<RecyclerView>(R.id.recycler)
+
+    recycler.apply {
+      setHasFixedSize(true)
+
+      layoutManager = linearManager
+
+      adapter = componentAdapter
     }
   }
 }
