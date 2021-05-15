@@ -18,11 +18,11 @@ class ViewWrapper {
                 viewWrapper.withView(activity.findViewById(it))
             }
         }
-        fun withParent(viewGroup: ViewGroup): (Int) -> ViewWrapper {
+        fun withParent(view: View): (Int) -> ViewWrapper {
             val viewWrapper = ViewWrapper()
 
             return {
-                viewWrapper.withView(viewGroup.findViewById(it))
+                viewWrapper.withView(view.findViewById(it))
             }
         }
     }

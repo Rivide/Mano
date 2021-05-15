@@ -7,8 +7,8 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
 object Formatter {
-  private val dateFormat = DateTimeFormatter.ofPattern("MM/dd/yy")
-  private val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
+  val dateFormat = DateTimeFormatter.ofPattern("MM/dd/yy")
+  val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
 
   fun getDate(date: LocalDate): String {
     return date.format(dateFormat)

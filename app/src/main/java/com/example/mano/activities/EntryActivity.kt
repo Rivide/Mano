@@ -1,9 +1,11 @@
 package com.example.mano.activities
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,34 +15,37 @@ import com.example.mano.data.adapters.ComponentAdapter
 import com.example.mano.data.database.DBHelper
 import com.example.mano.data.models.Component
 import com.example.mano.data.models.Reminder
+import com.example.mano.formatter.Formatter
 import com.example.mano.fragments.DateTimePicker
 import com.example.mano.fragments.DeleteFragment
 import com.example.mano.viewwrapper.ViewWrapper
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.OffsetDateTime
 
 class EntryActivity : AppCompatActivity() {
   lateinit var dbHelper: DBHelper
-  var id: Long = -1
-  lateinit var components: MutableList<Component>
+  var entryId: Long = -1
   lateinit var dateTimePicker: DateTimePicker
   var deleteFragment: DeleteFragment? = null
+
   val v = ViewWrapper.withParent(this)
 
-  lateinit var recycler: RecyclerView
+  lateinit var componentUIManager: ComponentUIManager
 
   @RequiresApi(Build.VERSION_CODES.O)
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_entry)
 
-    components = ArrayList()
+    componentUIManager = ComponentUIManager(this)
 
     dbHelper = DBHelper(this)
 
-    id = intent.getLongExtra("id", -1)
+    entryId = intent.getLongExtra("id", -1)
 
-    if (id > 0) {
+    if (entryId > 0) {
       v(R.id.title).text = intent.getStringExtra("title")!!
       v(R.id.body).text = intent.getStringExtra("body")!!
 
@@ -54,17 +59,17 @@ class EntryActivity : AppCompatActivity() {
 
       enableDelete()
 
-      components.addAll(dbHelper.selectComponentsByEntry(id)
-        .sortedBy { it.position }.toTypedArray())
+      componentUIManager = ComponentUIManager(this, dbHelper.selectComponentsByEntry(entryId)
+        .sortedBy { it.position }.toTypedArray().toMutableList())
     } else {
       dateTimePicker = DateTimePicker(
         supportFragmentManager,
         findViewById(R.id.date),
         findViewById(R.id.time)
       )
-    }
 
-    updateRecycler()
+      componentUIManager = ComponentUIManager(this)
+    }
   }
 
   @RequiresApi(Build.VERSION_CODES.O)
@@ -73,13 +78,17 @@ class EntryActivity : AppCompatActivity() {
     val body = v(R.id.body).text
     val dateTime = dateTimePicker.dateTime.toEpochSecond(OffsetDateTime.now().offset)
 
-    if (id > 0) {
-      dbHelper.updateEntry(id, title, body, dateTime)
+    if (entryId > 0) {
+      dbHelper.updateEntry(entryId, title, body, dateTime)
     } else {
-      id = dbHelper.insertEntry(title, body, dateTime)
+      entryId = dbHelper.insertEntry(title, body, dateTime)
     }
 
-    dbHelper.insertReminder(id, 0, dateTime)
+    componentUIManager.onSave()
+
+    //TODO: update reminder when already exists
+    componentUIManager.components.forEachIndexed{ index, component ->
+      dbHelper.insertReminder(entryId, index.toLong(), (component as Reminder).dateTime) }
 
     enableDelete()
   }
@@ -94,32 +103,62 @@ class EntryActivity : AppCompatActivity() {
 
     if (deleteFragment == null) {
       deleteFragment = DeleteFragment {
-        dbHelper.deleteEntry(id)
-        id = -1
+        dbHelper.deleteEntry(entryId)
+        entryId = -1
 
         v(R.id.deleteButton).view.visibility = View.GONE
       }
     }
   }
+
   fun onAddComponentButtonClick(view: View) {
-    components.add(Reminder(-1, id, components.size.toLong(),
-      OffsetDateTime.now().toEpochSecond()))
-
-    updateRecycler()
+    componentUIManager.onAddComponent(entryId)
   }
-  private fun updateRecycler() {
-    val linearManager = LinearLayoutManager(this)
 
-    val componentAdapter = ComponentAdapter(components)
+  class ComponentUIManager(activity: Activity,
+                           val components: MutableList<Component> = ArrayList()) {
+    private val linearManager = LinearLayoutManager(activity)
+    private val componentAdapter = ComponentAdapter(components)
+    private val recycler: RecyclerView = activity.findViewById(R.id.recycler)
 
-    recycler = findViewById(R.id.recycler)
+    init {
+      recycler.apply {
+        setHasFixedSize(true)
 
-    recycler.apply {
-      setHasFixedSize(true)
+        layoutManager = linearManager
 
-      layoutManager = linearManager
+        adapter = componentAdapter
+      }
+    }
 
-      adapter = componentAdapter
+    fun onAddComponent(entryId: Long) {
+      components.add(Reminder(-1, entryId, components.size.toLong(),
+        OffsetDateTime.now().toEpochSecond()))
+      updateData()
+      render()
+    }
+
+    fun onSave() {
+      updateData()
+    }
+
+    private fun updateData() {
+      for (i in 0 until linearManager.childCount) {
+        val v = ViewWrapper.withParent(linearManager.findViewByPosition(i)!!)
+
+        when (val component = components[i]) {
+          is Reminder -> {
+            component.dateTime = LocalDateTime.of(
+              LocalDate.parse(v(R.id.reminderDate).text, Formatter.dateFormat),
+              LocalTime.parse(v(R.id.reminderTime).text, Formatter.timeFormat)
+            ).toEpochSecond(OffsetDateTime.now().offset)
+          }
+        }
+      }
+    }
+
+    private fun render() {
+      componentAdapter.notifyDataSetChanged()
     }
   }
 }
