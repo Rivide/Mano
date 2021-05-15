@@ -10,11 +10,9 @@ import com.example.mano.data.models.Reminder
 import com.example.mano.formatter.Formatter
 import com.example.mano.viewwrapper.ViewWrapper
 
-class ComponentAdapter(val components: Array<Component>) : RecyclerView.Adapter<ComponentAdapter.ComponentViewHolder>() {
+class ComponentAdapter(val components: List<Component>) : RecyclerView.Adapter<ComponentAdapter.ComponentViewHolder>() {
 
     val viewTypes = arrayOf("reminder")
-
-    val v = ViewWrapper.getWrapper()
 
     class ComponentViewHolder(val layout: ConstraintLayout) : RecyclerView.ViewHolder(layout)
 
@@ -31,7 +29,7 @@ class ComponentAdapter(val components: Array<Component>) : RecyclerView.Adapter<
     override fun onBindViewHolder(holder: ComponentViewHolder, position: Int) {
         val component = components[position]
 
-        ViewWrapper.viewGroup = holder.layout
+        val v = ViewWrapper.withParent(holder.layout)
 
         when (component.type) {
             "reminder" -> {

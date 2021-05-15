@@ -4,28 +4,35 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 import com.example.mano.data.models.Component
 import com.example.mano.data.models.Entry
 import com.example.mano.data.models.Reminder
 
 const val DB_NAME = "Mano.db"
+const val TAG = "DBHelper"
 
 class DBHelper(context: Context) : SQLiteOpenHelper(context,
-  DB_NAME, null, 3) {
+  DB_NAME, null, 4) {
   override fun onCreate(db: SQLiteDatabase) {
+    Log.d(TAG, "$DB_NAME created.")
     /*db.execSQL(
       "create table entry (id integer primary key, title text, body text, dateTime integer)"
     )*/
-    db.execSQL(
+    /*db.execSQL(
       "create table component (id integer primary key, entryId integer, position integer, type text)"
-    )
+    )*/
     /*db.execSQL(
       "create table reminder (id integer primary key, dateTime integer)"
     )*/
   }
 
   override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-    db.execSQL("DROP TABLE IF EXISTS components")
+    Log.d(TAG, "$DB_NAME upgraded.")
+    db.execSQL(
+      "create table reminder (id integer primary key, dateTime integer)"
+    )
+    //db.execSQL("DROP TABLE IF EXISTS components")
     onCreate(db)
   }
 

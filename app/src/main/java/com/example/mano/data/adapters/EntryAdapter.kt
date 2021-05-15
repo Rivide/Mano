@@ -1,13 +1,10 @@
 package com.example.mano.data.adapters
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
@@ -21,8 +18,6 @@ import java.time.format.DateTimeFormatter
 
 class EntryAdapter(val context: Context, val entries: Array<Entry>) :
   RecyclerView.Adapter<EntryAdapter.EntryViewHolder>() {
-
-  val v = ViewWrapper.getWrapper()
 
   class EntryViewHolder(val layout: ConstraintLayout) : RecyclerView.ViewHolder(layout)
 
@@ -40,7 +35,7 @@ class EntryAdapter(val context: Context, val entries: Array<Entry>) :
     val dateTime = LocalDateTime.ofEpochSecond(entry.dateTime, 0,
       OffsetDateTime.now().offset)
 
-    ViewWrapper.viewGroup = holder.layout
+    val v = ViewWrapper.withParent(holder.layout)
 
     v(R.id.entryTitle).text = entry.title
     v(R.id.entryBody).text = entry.body

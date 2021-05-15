@@ -4,10 +4,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,20 +11,21 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.mano.R
 import com.example.mano.data.adapters.ComponentAdapter
 import com.example.mano.data.database.DBHelper
+import com.example.mano.data.models.Component
+import com.example.mano.data.models.Reminder
 import com.example.mano.fragments.DateTimePicker
 import com.example.mano.fragments.DeleteFragment
-import com.example.mano.fragments.TimePickerFragment
 import com.example.mano.viewwrapper.ViewWrapper
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
-import kotlin.reflect.typeOf
 
 class EntryActivity : AppCompatActivity() {
   lateinit var dbHelper: DBHelper
   var id: Long = -1
+  lateinit var components: MutableList<Component>
   lateinit var dateTimePicker: DateTimePicker
   var deleteFragment: DeleteFragment? = null
-  val v = ViewWrapper.getWrapper()
+  val v = ViewWrapper.withParent(this)
 
   lateinit var recycler: RecyclerView
 
@@ -37,7 +34,7 @@ class EntryActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_entry)
 
-    ViewWrapper.activity = this
+    components = ArrayList()
 
     dbHelper = DBHelper(this)
 
@@ -57,7 +54,8 @@ class EntryActivity : AppCompatActivity() {
 
       enableDelete()
 
-      fillRecycler()
+      components.addAll(dbHelper.selectComponentsByEntry(id)
+        .sortedBy { it.position }.toTypedArray())
     } else {
       dateTimePicker = DateTimePicker(
         supportFragmentManager,
@@ -65,6 +63,8 @@ class EntryActivity : AppCompatActivity() {
         findViewById(R.id.time)
       )
     }
+
+    updateRecycler()
   }
 
   @RequiresApi(Build.VERSION_CODES.O)
@@ -102,15 +102,17 @@ class EntryActivity : AppCompatActivity() {
     }
   }
   fun onAddComponentButtonClick(view: View) {
+    components.add(Reminder(-1, id, components.size.toLong(),
+      OffsetDateTime.now().toEpochSecond()))
 
+    updateRecycler()
   }
-  private fun fillRecycler() {
+  private fun updateRecycler() {
     val linearManager = LinearLayoutManager(this)
 
-    val componentAdapter = ComponentAdapter(dbHelper.selectComponentsByEntry(id)
-      .sortedBy { it.position }.toTypedArray())
+    val componentAdapter = ComponentAdapter(components)
 
-    recycler = findViewById<RecyclerView>(R.id.recycler)
+    recycler = findViewById(R.id.recycler)
 
     recycler.apply {
       setHasFixedSize(true)
