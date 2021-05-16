@@ -17,20 +17,25 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 @RequiresApi(Build.VERSION_CODES.O)
-class DatePickerFragment(var date: LocalDate = LocalDate.now(),
-                         val onUpdate: DatePickerFragment.() -> Unit = {})
+open class DatePickerFragment(var date: LocalDate = LocalDate.now(),
+                              val onUpdate: DatePickerFragment.() -> Unit = {},
+                              val onCreate: DatePickerFragment.() -> Unit = {})
   : DialogFragment(), DatePickerDialog.OnDateSetListener {
 
   var hidden = true
 
   override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
     hidden = false
+    onCreate()
 
-    return DatePickerDialog(activity!!, this, date.year, date.monthValue, date.dayOfMonth)
+    // android months are 0-11
+    return DatePickerDialog(activity!!, this,
+      date.year, date.monthValue - 1, date.dayOfMonth)
   }
 
   override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
-    date = LocalDate.of(year, month, dayOfMonth)
+    // android months are 0-11
+    date = LocalDate.of(year, month + 1, dayOfMonth)
     onUpdate()
   }
 

@@ -27,7 +27,6 @@ import java.time.OffsetDateTime
 class EntryActivity : AppCompatActivity() {
   lateinit var dbHelper: DBHelper
   var entryId: Long = -1
-  lateinit var dateTimePicker: DateTimePicker
   var deleteFragment: DeleteFragment? = null
 
   val v = ViewWrapper.withParent(this)
@@ -49,25 +48,16 @@ class EntryActivity : AppCompatActivity() {
       v(R.id.title).text = intent.getStringExtra("title")!!
       v(R.id.body).text = intent.getStringExtra("body")!!
 
-      dateTimePicker = DateTimePicker(
-        supportFragmentManager,
-        findViewById(R.id.date),
-        findViewById(R.id.time),
-        LocalDateTime.ofEpochSecond(intent.getLongExtra("dateTime", -1),
-          0, OffsetDateTime.now().offset)
-      )
+      val epochSecond = intent.getLongExtra("dateTime", -1)
+
+      v(R.id.date).text = Formatter.getDate(epochSecond)
+      v(R.id.time).text = Formatter.getTime(epochSecond)
 
       enableDelete()
 
       componentUIManager = ComponentUIManager(this, dbHelper.selectComponentsByEntry(entryId)
         .sortedBy { it.position }.toTypedArray().toMutableList())
     } else {
-      dateTimePicker = DateTimePicker(
-        supportFragmentManager,
-        findViewById(R.id.date),
-        findViewById(R.id.time)
-      )
-
       componentUIManager = ComponentUIManager(this)
     }
   }
@@ -76,7 +66,10 @@ class EntryActivity : AppCompatActivity() {
   fun onSaveButtonClick(view: View) {
     val title = v(R.id.title).text
     val body = v(R.id.body).text
-    val dateTime = dateTimePicker.dateTime.toEpochSecond(OffsetDateTime.now().offset)
+    val dateTime = LocalDateTime.of(
+      Formatter.parseDate(v(R.id.date).text),
+      Formatter.parseTime(v(R.id.time).text)
+    ).toEpochSecond(OffsetDateTime.now().offset)
 
     if (entryId > 0) {
       dbHelper.updateEntry(entryId, title, body, dateTime)
@@ -86,7 +79,6 @@ class EntryActivity : AppCompatActivity() {
 
     componentUIManager.onSave()
 
-    //TODO: update reminder when already exists
     componentUIManager.components.forEachIndexed{ index, component ->
       if (component.id > 0) {
         dbHelper.updateReminder(component.id, (component as Reminder).dateTime)
@@ -155,8 +147,8 @@ class EntryActivity : AppCompatActivity() {
         when (val component = components[i]) {
           is Reminder -> {
             component.dateTime = LocalDateTime.of(
-              LocalDate.parse(v(R.id.reminderDate).text, Formatter.dateFormat),
-              LocalTime.parse(v(R.id.reminderTime).text, Formatter.timeFormat)
+              Formatter.parseDate(v(R.id.reminderDate).text),
+              Formatter.parseTime(v(R.id.reminderTime).text)
             ).toEpochSecond(OffsetDateTime.now().offset)
           }
         }

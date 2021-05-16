@@ -1,5 +1,6 @@
 package com.example.mano.formatter
 
+import com.example.mano.R
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -29,5 +30,11 @@ object Formatter {
   fun getTime(epochSecond: Long): String {
     return getTime(LocalDateTime.ofEpochSecond(epochSecond, 0,
       OffsetDateTime.now().offset))
+  }
+  fun parseDate(text: CharSequence): LocalDate {
+    return LocalDate.parse(text, dateFormat)
+  }
+  fun parseTime(text: CharSequence): LocalTime {
+    return LocalTime.parse(text, timeFormat)
   }
 }
