@@ -14,9 +14,14 @@ class ComponentAdapter(val components: List<Component>) : RecyclerView.Adapter<C
 
     val viewTypes = arrayOf("reminder")
 
-    class ComponentViewHolder(val layout: ConstraintLayout) : RecyclerView.ViewHolder(layout)
+    class ComponentViewHolder(val layout: ConstraintLayout) : RecyclerView.ViewHolder(layout) {
+        init {
+
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ComponentViewHolder {
+        // TODO: replace when return values with layouts, and return viewholder only at end
         return when (viewTypes[viewType]) {
             "reminder" -> ComponentViewHolder(
                 LayoutInflater.from(parent.context)

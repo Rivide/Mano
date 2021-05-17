@@ -140,6 +140,9 @@ class EntryActivity : AppCompatActivity() {
       updateData()
     }
 
+    fun onDeleteComponent() {
+
+    }
     private fun updateData() {
       for (i in 0 until linearManager.childCount) {
         val v = ViewWrapper.withParent(linearManager.findViewByPosition(i)!!)
