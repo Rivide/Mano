@@ -111,7 +111,12 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context,
     return list
   }
 
-  fun selectTypedComponent(component: Component): Component {
+  fun deleteComponent(component: Component) {
+    writableDatabase.delete(component.type, "id=?", arrayOf(component.id.toString()))
+    writableDatabase.delete("component", "id=?", arrayOf(component.id.toString()))
+  }
+
+  private fun selectTypedComponent(component: Component): Component {
     val cursor = readableDatabase.rawQuery("select * from ${component.type} where id = ?",
       arrayOf(component.id.toString()))
 
@@ -123,10 +128,6 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context,
 
       else -> component
     }
-  }
-
-  fun deleteComponent(component: Component) {
-
   }
 
   fun insertReminder(entryId: Long, position: Long, dateTime: Long): Long {

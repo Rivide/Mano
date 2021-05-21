@@ -10,31 +10,32 @@ import com.example.mano.data.models.Reminder
 import com.example.mano.formatter.Formatter
 import com.example.mano.viewwrapper.ViewWrapper
 
-class ComponentAdapter(val components: List<Component>) : RecyclerView.Adapter<ComponentAdapter.ComponentViewHolder>() {
+class ComponentAdapter(private val components: List<Component>, val onDeleteComponent: (Int) -> Unit) :
+    RecyclerView.Adapter<ComponentAdapter.ComponentViewHolder>() {
 
-    val viewTypes = arrayOf("reminder")
+    private val viewTypes = arrayOf("reminder")
 
-    class ComponentViewHolder(val layout: ConstraintLayout) : RecyclerView.ViewHolder(layout) {
-        init {
-
-        }
-    }
+    class ComponentViewHolder(val layout: ConstraintLayout) : RecyclerView.ViewHolder(layout)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ComponentViewHolder {
-        // TODO: replace when return values with layouts, and return viewholder only at end
-        return when (viewTypes[viewType]) {
-            "reminder" -> ComponentViewHolder(
-                LayoutInflater.from(parent.context)
-                    .inflate(R.layout.layout_reminder, parent, false) as ConstraintLayout
-            )
-            else -> ComponentViewHolder(ConstraintLayout(parent.context))
-        }
+        return ComponentViewHolder(
+            when (viewTypes[viewType]) {
+                "reminder" ->
+                    LayoutInflater.from(parent.context)
+                        .inflate(R.layout.layout_reminder, parent, false) as ConstraintLayout
+                else -> ConstraintLayout(parent.context)
+            }
+        )
     }
 
     override fun onBindViewHolder(holder: ComponentViewHolder, position: Int) {
         val component = components[position]
 
         val v = ViewWrapper.withParent(holder.layout)
+
+        v(R.id.deleteComponentButton).view.setOnClickListener {
+            onDeleteComponent(position)
+        }
 
         when (component.type) {
             "reminder" -> {

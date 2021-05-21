@@ -79,6 +79,8 @@ class EntryActivity : AppCompatActivity() {
 
     componentUIManager.onSave()
 
+    componentUIManager.componentsToDelete.forEach { dbHelper.deleteComponent(it) }
+
     componentUIManager.components.forEachIndexed{ index, component ->
       if (component.id > 0) {
         dbHelper.updateReminder(component.id, (component as Reminder).dateTime)
@@ -116,8 +118,9 @@ class EntryActivity : AppCompatActivity() {
   class ComponentUIManager(activity: Activity,
                            val components: MutableList<Component> = ArrayList()) {
     private val linearManager = LinearLayoutManager(activity)
-    private val componentAdapter = ComponentAdapter(components)
+    private val componentAdapter = ComponentAdapter(components) { onDeleteComponent(it) }
     private val recycler: RecyclerView = activity.findViewById(R.id.recycler)
+    val componentsToDelete = ArrayList<Component>()
 
     init {
       recycler.apply {
@@ -132,6 +135,7 @@ class EntryActivity : AppCompatActivity() {
     fun onAddComponent(entryId: Long) {
       components.add(Reminder(-1, entryId, components.size.toLong(),
         OffsetDateTime.now().toEpochSecond()))
+
       updateData()
       render()
     }
@@ -140,22 +144,49 @@ class EntryActivity : AppCompatActivity() {
       updateData()
     }
 
-    fun onDeleteComponent() {
+    private fun onDeleteComponent(position: Int) {
+      componentsToDelete.add(components[position])
+      components.removeAt(position)
 
+      updateData()
+      render()
     }
-    private fun updateData() {
-      for (i in 0 until linearManager.childCount) {
-        val v = ViewWrapper.withParent(linearManager.findViewByPosition(i)!!)
 
-        when (val component = components[i]) {
-          is Reminder -> {
-            component.dateTime = LocalDateTime.of(
-              Formatter.parseDate(v(R.id.reminderDate).text),
-              Formatter.parseTime(v(R.id.reminderTime).text)
-            ).toEpochSecond(OffsetDateTime.now().offset)
+    private fun updateData() {
+      components.forEachIndexed { index, component ->
+        // get view at position before delete
+        linearManager.findViewByPosition(component.position.toInt())?.let {
+          val v = ViewWrapper.withParent(it)
+
+          when (component) {
+            is Reminder -> {
+              component.dateTime = LocalDateTime.of(
+                Formatter.parseDate(v(R.id.reminderDate).text),
+                Formatter.parseTime(v(R.id.reminderTime).text)
+              ).toEpochSecond(OffsetDateTime.now().offset)
+            }
           }
         }
+
+        // update position
+        component.position = index.toLong()
       }
+//      for (i in 0 until linearManager.childCount) {
+//        val component = components[i]
+//
+//        val v = ViewWrapper.withParent(linearManager.findViewByPosition(component.position.toInt())!!)
+//
+//        component.position = i.toLong()
+//
+//        when (component) {
+//          is Reminder -> {
+//            component.dateTime = LocalDateTime.of(
+//              Formatter.parseDate(v(R.id.reminderDate).text),
+//              Formatter.parseTime(v(R.id.reminderTime).text)
+//            ).toEpochSecond(OffsetDateTime.now().offset)
+//          }
+//        }
+//      }
     }
 
     private fun render() {
