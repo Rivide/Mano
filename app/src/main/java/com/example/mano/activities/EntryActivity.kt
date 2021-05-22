@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.TextView
 import androidx.annotation.RequiresApi
@@ -23,6 +24,8 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.OffsetDateTime
+
+const val TAG = "#EntryActivity"
 
 class EntryActivity : AppCompatActivity() {
   lateinit var dbHelper: DBHelper
@@ -166,6 +169,7 @@ class EntryActivity : AppCompatActivity() {
               ).toEpochSecond(OffsetDateTime.now().offset)
             }
           }
+          Log.d(TAG, component.toString())
         }
 
         // update position
