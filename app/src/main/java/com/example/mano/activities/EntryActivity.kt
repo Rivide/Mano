@@ -89,7 +89,9 @@ class EntryActivity : AppCompatActivity() {
         dbHelper.updateReminder(component.id, (component as Reminder).dateTime)
       }
       else {
-        dbHelper.insertReminder(entryId, index.toLong(), (component as Reminder).dateTime)
+        component.entryId = entryId
+        component.id =
+          dbHelper.insertReminder(entryId, index.toLong(), (component as Reminder).dateTime)
       }
     }
 

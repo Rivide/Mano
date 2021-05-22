@@ -95,16 +95,23 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context,
     cursor.moveToFirst()
 
     while (!cursor.isAfterLast) {
-      val component = Component(
-        cursor.getLong(cursor.getColumnIndex("id")),
-        cursor.getLong(cursor.getColumnIndex("entryId")),
-        cursor.getLong(cursor.getColumnIndex("position")),
-        cursor.getString(cursor.getColumnIndex("type"))
-      )
+      val id = cursor.getLong(cursor.getColumnIndex("id"))
+      val entryId = cursor.getLong(cursor.getColumnIndex("entryId"))
+      val position = cursor.getLong(cursor.getColumnIndex("position"))
+      val type = cursor.getString(cursor.getColumnIndex("type"))
 
-      list.add(
-        selectTypedComponent(component)
-      )
+      list.add(selectTypedComponent(id, entryId, position, type)!!)
+
+//      val component = Component(
+//        cursor.getLong(cursor.getColumnIndex("id")),
+//        cursor.getLong(cursor.getColumnIndex("entryId")),
+//        cursor.getLong(cursor.getColumnIndex("position")),
+//        cursor.getString(cursor.getColumnIndex("type"))
+//      )
+//
+//      list.add(
+//        selectTypedComponent(component)
+//      )
 
       cursor.moveToNext()
     }
@@ -127,6 +134,19 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context,
         cursor.getLong(cursor.getColumnIndex("dateTime")))
 
       else -> component
+    }
+  }
+  private fun selectTypedComponent(id: Long, entryId: Long, position: Long, type: String): Component? {
+    val cursor = readableDatabase.rawQuery("select * from $type where id = ?",
+      arrayOf(id.toString()))
+
+    cursor.moveToFirst()
+
+    return when (type) {
+      "reminder" -> Reminder(id, entryId, position,
+        cursor.getLong(cursor.getColumnIndex("dateTime")))
+
+      else -> null
     }
   }
 
